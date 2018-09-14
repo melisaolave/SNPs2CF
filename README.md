@@ -2,6 +2,7 @@
 An R function to compute Concordance Factors from SNP datasets
 
 https://github.com/melisaolave/SNPs2CF
+
 by Melisa Olave, University of Konstanz (Germany)
 
 LICENSE
