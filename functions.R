@@ -107,7 +107,7 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
     }else{
       cat("A total of ", ncol(allQuartets)*n.quartets, "quartets will be sampled\n"); 
     }
-    cat("Getting CF calculations. There is not progress report when running in parallel. This could take several minutes/hours, please be pacient...")
+    cat("Getting CF calculations. There is not progress report when running in parallel. This could take several minutes/hours, please be pacient...\n")
   }
   if(indels.as.fifth.state){
     gaps <- "-";
@@ -122,6 +122,7 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
   output.table <- data.frame(matrix(ncol=8, nrow=0));
   error.log <- paste(seqMatrix, "-SNPs2CF.err", sep="");
   write(NULL,error.log);
+  resampling.err <- FALSE;
   start.time <- Sys.time();
   output.table <- foreach(l=1:ncol(allQuartets), .combine=rbind) %dopar%{
     cat("Working on species quartet:", l, "/", ncol(allQuartets), "\n");
@@ -153,16 +154,10 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
     min.boots.split13_24 <- NULL;
     max.boots.split14_23 <- NULL;
     min.boots.split14_23 <- NULL;
+    quartet.ok <- T;
     cat("A total of", n.quart, "individual quartets will be sampled within each of the", ncol(allQuartets), "species quartets\n");
     cat("Progress:\n")
     while(count <= n.quart){
-      if(n.resampled > 100){ # in case the while loop gets stock for ever when randomly sampling
-        error <- paste("Warning: Species quartet:", paste(sampled.sp, collapse=" "), "\nwas sampled", ind.sampling, "times only, instead of n.quartets=", n.quartets, "\n");
-        prev.error <- scan(error.log, what="character", sep="\n");
-        new.error <- c(prev.error, error);
-        write(new.error, error.log);
-        break;
-      }
       cat("\t", count, "/", n.quart, "of", l, "/", ncol(allQuartets), "\n");
       if(n.quartets != "all"){
         random.indQuartet <- NULL;
@@ -257,26 +252,36 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
       if(n.resampled > 1){
         cat("\tresampling =", n.resampled,"\n");
       }
+      if(n.resampled == 100){ # in case the while loop gets stock for ever when randomly sampling
+        error <- paste("Warning: Species quartet:", paste(sampled.sp, collapse=" "), "\nwas sampled", ind.sampling, "times only, instead of n.quartets=", n.quartets, "\n");
+        prev.error <- scan(error.log, what="character", sep="\n");
+        new.error <- c(prev.error, error);
+        write(new.error, error.log);
+        quartet.ok <- F; # do not try to save this quartet in the table
+        break;
+      }
     }
-    sp1 <- rep(as.character(subMatrix[1,1]), length(genes));
-    sp2 <- rep(as.character(subMatrix[2,1]), length(genes));
-    sp3 <- rep(as.character(subMatrix[3,1]), length(genes));
-    sp4 <- rep(as.character(subMatrix[4,1]), length(genes));
-    colnames(temp.table) <- c("t1", "t2", "t3", "t4", "CF12_34", "CF13_24", "CF14_23", "genes");
-    genes <- c(as.numeric(temp.table[,8]));
-    split12_34 <- round(c(as.numeric(temp.table[,5]))/genes, 4);
-    split13_24 <- round(c(as.numeric(temp.table[,6]))/genes, 4);
-    split14_23 <- round(c(as.numeric(temp.table[,7]))/genes, 4);
-    if(bootstrap){
-      output.table <- data.frame(sp1, sp2, sp3, sp4, 
-                                 split12_34, min.boots.split12_34, max.boots.split12_34,
-                                 split13_24, min.boots.split13_24, max.boots.split13_24,
-                                 split14_23, min.boots.split14_23, max.boots.split14_23,
-                                 genes);
-    }else{
-      output.table <- data.frame(sp1, sp2, sp3, sp4, split12_34, split13_24, split14_23, genes);
+      if(quartet.ok){
+        sp1 <- rep(as.character(subMatrix[1,1]), length(genes));
+        sp2 <- rep(as.character(subMatrix[2,1]), length(genes));
+        sp3 <- rep(as.character(subMatrix[3,1]), length(genes));
+        sp4 <- rep(as.character(subMatrix[4,1]), length(genes));
+        colnames(temp.table) <- c("t1", "t2", "t3", "t4", "CF12_34", "CF13_24", "CF14_23", "genes");
+        genes <- c(as.numeric(temp.table[,8]));
+        split12_34 <- round(c(as.numeric(temp.table[,5]))/genes, 4);
+        split13_24 <- round(c(as.numeric(temp.table[,6]))/genes, 4);
+        split14_23 <- round(c(as.numeric(temp.table[,7]))/genes, 4);
+        if(bootstrap){
+          output.table <- data.frame(sp1, sp2, sp3, sp4, 
+                                     split12_34, min.boots.split12_34, max.boots.split12_34,
+                                     split13_24, min.boots.split13_24, max.boots.split13_24,
+                                     split14_23, min.boots.split14_23, max.boots.split14_23,
+                                     genes);
+        }else{
+          output.table <- data.frame(sp1, sp2, sp3, sp4, split12_34, split13_24, split14_23, genes);
+        }
+        output.table;
     }
-    output.table;
   }
   if(bootstrap){
     colnames(output.table) <- c("t1", "t2", "t3", "t4", 
@@ -288,6 +293,10 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
     colnames(output.table) <- c("t1", "t2", "t3", "t4", "CF12_34", "CF13_24", "CF14_23", "genes");
   }
   write.table(output.table, outputName, sep=",", col.names=T, row.names=F, quote=F);
+  prev.error <- scan(error.log, what="character", sep="\n");
+  if(length(prev.error) == 0){
+    cat("\nWARNING: check the .err file for errors\n");
+  }
   end.time <- Sys.time()
   time.taken <- difftime(end.time, start.time, units="secs");
   cat("done!\n\ta total of",nrow(output.table),"quartets were analyzed\n\tTime taken:", time.taken, "seconds\n");
