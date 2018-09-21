@@ -257,7 +257,9 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
         prev.error <- scan(error.log, what="character", sep="\n");
         new.error <- c(prev.error, error);
         write(new.error, error.log);
-        quartet.ok <- F; # do not try to save this quartet in the table
+         if(ind.sampling == 0){ # only if there is no quartet saved so far
+          quartet.ok <- F; # do not try to save this quartet in the table
+        }
         break;
       }
     }
