@@ -6,7 +6,7 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
                     indels.as.fifth.state=F,  
                     bootstrap=T, boots.rep=100, 
                     outputName="SNPs2CF.csv",
-                    n.quartets="all", between.sp.only=F, max.SNPs=NULL, 
+                    n.quartets="all", between.sp.only=F, max.SNPs=NULL, max.quartets=100000,
                     cores=1){
   registerDoMC(cores);
   setwd(wd);
@@ -79,6 +79,10 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
     n.sp <-  length(spNames);
     cat(n.sp, "species found in Imap:", spNames, "\n");
     allQuartets <- combn(x=1:n.sp, m=4); # getting all possible quartets combinations
+    cat("All possible species quartets for", n.sp, "species:", ncol(allQuartets), "\n");
+    if(ncol(allQuartets) > max.quartets){
+      stop("Too many quartets (>100,000). \n");
+    }
   }else{
     if(n.quartets != "all"){
       cat("WARNING: if between.sp.only = F, then n.quartets will be treated as = all\n")
@@ -88,11 +92,12 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
     n.sp <-  length(spNames);
     cat(length(unique(spNames)), "individuals found in Imap:", unique(spNames), "\n");
     allQuartets <- combn(x=1:n.sp, m=4); # getting all possible quartets combinations
-    if(ncol(allQuartets) > 100000){
+    cat("All possible species quartets for", n.sp, "species:", ncol(allQuartets), "\n");
+    if(ncol(allQuartets) > max.quartets){
       stop("Too many quartets (>100,000). Set between.sp.only = T, and run again\n");
     }
   }
-  cat("All possible species quartets for", n.sp, "species:", ncol(allQuartets), "\n");
+  
   
   # checking other arguments
   if(is.null(max.SNPs) == F){
@@ -257,7 +262,7 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
         prev.error <- scan(error.log, what="character", sep="\n");
         new.error <- c(prev.error, error);
         write(new.error, error.log);
-         if(ind.sampling == 0){ # only if there is no quartet saved so far
+        if(ind.sampling == 0){ # only if there is no quartet saved so far
           quartet.ok <- F; # do not try to save this quartet in the table
         }
         break;
@@ -296,12 +301,13 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
   }
   write.table(output.table, outputName, sep=",", col.names=T, row.names=F, quote=F);
   prev.error <- scan(error.log, what="character", sep="\n");
-  if(length(prev.error) == 0){
+  if(length(prev.error) > 0){
     cat("\nWARNING: check the .err file for errors\n");
   }
   end.time <- Sys.time()
   time.taken <- difftime(end.time, start.time, units="secs");
   cat("done!\n\ta total of",nrow(output.table),"quartets were analyzed\n\tTime taken:", time.taken, "seconds\n");
+  return(output.table);
 }
 
 
