@@ -81,7 +81,8 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
     allQuartets <- combn(x=1:n.sp, m=4); # getting all possible quartets combinations
     cat("All possible species quartets for", n.sp, "species:", ncol(allQuartets), "\n");
     if(ncol(allQuartets) > max.quartets){
-      stop("Too many quartets (>100,000). \n");
+      cat("Error: the number of species quartets exceeds the max.quartets =", max.quartets, "\n");
+      stop("Too many quartets. Reduce number of target species or change max.quartets\n");
     }
   }else{
     if(n.quartets != "all"){
@@ -94,7 +95,8 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
     allQuartets <- combn(x=1:n.sp, m=4); # getting all possible quartets combinations
     cat("All possible species quartets for", n.sp, "species:", ncol(allQuartets), "\n");
     if(ncol(allQuartets) > max.quartets){
-      stop("Too many quartets (>100,000). Set between.sp.only = T, and run again\n");
+      cat("Error: the number of species quartets exceeds the max.quartets =", max.quartets, "\n");
+      stop("Too many quartets. Set between.sp.only = T, and run again\n");
     }
   }
   
