@@ -1,3 +1,4 @@
+# Version 1.2
 library(foreach);
 library(doMC);
 
@@ -6,7 +7,8 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
                     indels.as.fifth.state=F,  
                     bootstrap=T, boots.rep=100, 
                     outputName="SNPs2CF.csv",
-                    n.quartets="all", between.sp.only=F, max.SNPs=NULL, max.quartets=100000,
+                    n.quartets="all", between.sp.only=F, starting.sp.quartet=1, max.SNPs=NULL, max.quartets=100000,
+                    save.progress=T,
                     cores=1){
   registerDoMC(cores);
   setwd(wd);
@@ -89,9 +91,9 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
       cat("WARNING: if between.sp.only = F, then n.quartets will be treated as = all\n")
       n.quartets <- "all";
     }
-    spNames <- sort(as.character(Imap$species));
+    spNames <- sort(as.character(Imap$species)); # no unique, since the idea is to treat each allele as different
     n.sp <-  length(spNames);
-    cat(length(unique(spNames)), "individuals found in Imap:", unique(spNames), "\n");
+    cat(length(unique(spNames)), "species found in Imap:", unique(spNames), "\n");
     allQuartets <- combn(x=1:n.sp, m=4); # getting all possible quartets combinations
     cat("All possible species quartets for", n.sp, "species:", ncol(allQuartets), "\n");
     if(ncol(allQuartets) > max.quartets){
@@ -122,6 +124,14 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
     gaps <- NULL;
   }
   
+  if(save.progress){
+    # create temporal folder to save progress 
+    dir.name <- paste("temp_",gsub(pattern=".* (\\d+:\\d+:\\d+).*", replacement="\\1", Sys.time()), sep="");
+    dir.name <- gsub(pattern=":", replacement="-",dir.name);
+    dir.create(dir.name)
+    temp.path <- file.path(wd, dir.name);
+  }
+  
   # starting loop
   indQuartetVec <- NULL;
   quartet.list <- NULL;
@@ -131,7 +141,7 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
   write(NULL,error.log);
   resampling.err <- FALSE;
   start.time <- Sys.time();
-  output.table <- foreach(l=1:ncol(allQuartets), .combine=rbind) %dopar%{
+  output.table <- foreach(l=starting.sp.quartet:ncol(allQuartets), .combine=rbind) %dopar%{
     cat("Working on species quartet:", l, "/", ncol(allQuartets), "\n");
     sampled.sp <- spNames[allQuartets[,l]];
     if(between.sp.only == F){
@@ -289,17 +299,27 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
         }else{
           output.table <- data.frame(sp1, sp2, sp3, sp4, split12_34, split13_24, split14_23, genes);
         }
+        # add colnames
+        if(bootstrap){
+          colnames(output.table) <- c("t1", "t2", "t3", "t4", 
+                                      "CF12_34", "CF12_34_lo", "CF12_34_hi",
+                                      "CF13_24", "CF13_24_lo", "CF13_24_hi",
+                                      "CF14_23", "CF14_23_lo", "CF14_23_hi",
+                                      "genes");
+        }else{
+          colnames(output.table) <- c("t1", "t2", "t3", "t4", "CF12_34", "CF13_24", "CF14_23", "genes");
+        }
+        
+        # save progress
+        if(save.progress){
+          setwd(temp.path);
+          write.table(output.table, paste("quartet", l, ".temp.csv", sep=""), col.names=T, row.names=F, sep=",", quote=F)
+          setwd(wd);
+        }
+        
+        # return
         output.table;
     }
-  }
-  if(bootstrap){
-    colnames(output.table) <- c("t1", "t2", "t3", "t4", 
-                                "CF12_34", "CF12_34_lo", "CF12_34_hi",
-                                "CF13_24", "CF13_24_lo", "CF13_24_hi",
-                                "CF14_23", "CF14_23_lo", "CF14_23_hi",
-                                "genes");
-  }else{
-    colnames(output.table) <- c("t1", "t2", "t3", "t4", "CF12_34", "CF13_24", "CF14_23", "genes");
   }
   write.table(output.table, outputName, sep=",", col.names=T, row.names=F, quote=F);
   prev.error <- scan(error.log, what="character", sep="\n");
@@ -334,4 +354,30 @@ get.allQuartet.combn <- function(sp1, sp2, sp3, sp4, stop.max=100000){
   }
   cat("sampling all quartets:", ncol(all.indQuartet), "\n");
   return(all.indQuartet);
+}
+
+combine.CF.table <- function(wd=getwd(), folder.names=NULL, pattern=".temp.csv$", output="SNPs2CF.csv", output.path=NULL){
+  setwd(wd);
+  if(is.null(output.path)){
+    output.path <- getwd();
+  }
+  if(is.null(folder.names)){
+    dirs <- list.files(pattern="temp")
+    dirs <- sort(dirs)
+  }else{
+    dirs <- folder.names;
+  }
+  table <- data.frame();
+  for(j in 1:length(dirs)){
+    setwd(file.path(wd, dirs[j]));
+    files <-  list.files(pattern=pattern);
+    for(i in 1:length(files)){
+      new.table <- read.table(files[i], header=T, sep=",", row.names=NULL);
+      table <- rbind(table, new.table);
+    }
+  }
+  setwd(output.path);
+  write.table(table, output, col.names=T, row.names=F, sep=",", quote=F);
+  setwd(wd);
+  return(table);
 }
