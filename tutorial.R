@@ -6,7 +6,7 @@
 ############################################################# DESCRIPTION #########################################################################
 # This tutorial allows to obtain the concordance factors (CF) calculations from a SNP matrix in phylip format using the SNPs2CF() function.
 # Make sure of reading the documentation before.
-# Version 1.1
+# Version 1.2
 #################################### Getting started: Packages installation and loading the functions #############################################
 # Make sure to install the doMC and foreach libraries. If they are not yet installed, run:
 install.packages("foreach", repos="http://R-Forge.R-project.org");
@@ -28,7 +28,7 @@ setwd("/MYPATH/SNPs2CF/examples/");
   # so the calculations will not take that long. If your computer is still too slow, you can reduce the number of max.SNPs to make things go faster. 
   # NOTE: when using your real data, it is good to take advantage of the largest number of SNPs possible. So, unless there is a clear
   # reason for it, DO NOT use max.SNPs (either don't write this argument or set max.SNPs = NULL)
-output <- SNPs2CF(seqMatrix="5taxa-30K_SNPs.phy", max.SNPs = 1000, bootstrap=FALSE, outputName="SNPs2CF_5taxa-1K_SNPs.csv");
+output <- SNPs2CF(seqMatrix="5taxa-30K_SNPs.phy", max.SNPs = 1000, bootstrap=FALSE, outputName="SNPs2CF_5taxa-1K_SNPs.csv", save.progress=FALSE);
 
 # it is possible to give a look to the output
 head(output)
@@ -37,7 +37,7 @@ head(output)
 # For interpretation of the output check the documentation (Output section)
 
 # Let's now try to include bootstrap and compare the output with the one generated before
-output <- SNPs2CF(seqMatrix="5taxa-30K_SNPs.phy", max.SNPs = 1000, bootstrap=TRUE, outputName="SNPs2CF_5taxa-1K_SNPs-bootstrap.csv");
+output <- SNPs2CF(seqMatrix="5taxa-30K_SNPs.phy", max.SNPs = 1000, bootstrap=TRUE, outputName="SNPs2CF_5taxa-1K_SNPs-bootstrap.csv", save.progress=FALSE);
 
 # Check your working directory and should find the new file: SNPs2CF_5taxa-2K_SNPs-bootstrap.csv
 # If bootstrap = TRUE then the output also contains two extra columns per each CF for lower and upper limit of the credibility interval.
@@ -54,14 +54,14 @@ setwd("/MYPATH/SNPs2CF/examples/");
   # but it reduces the time required and, to the end of the tutorial, this is enough to see how it works.
   # Obtain a CF table as follow:
 output <- SNPs2CF(seqMatrix="5taxa-2ind-30K_SNPs.phy", ImapName="Imap.txt", between.sp.only = TRUE, max.SNPs = 100, bootstrap=FALSE,
-                  outputName="SNPs2CF_5taxa-2ind-1K_SNPs.csv")
+                  outputName="SNPs2CF_5taxa-2ind-1K_SNPs.csv", save.progress=FALSE)
 
 # Check your working directory and should find the new file: SNPs2CF_5taxa-2ind-1K_SNPs.csv
 
 # Let's now try out the between.sp.only = FALSE (default) 
   # IMPORTANT: the number of quartets rises now to 2,100. So, here we reduce the max.SNPs to only 50.
 output <- SNPs2CF(seqMatrix="5taxa-2ind-30K_SNPs.phy", ImapName="Imap.txt", between.sp.only = FALSE, max.SNPs = 50, 
-                   bootstrap=FALSE, outputName="5taxa-2ind-1K_SNPs.phy-allQuart.csv");
+                   bootstrap=FALSE, outputName="5taxa-2ind-1K_SNPs.phy-allQuart.csv", save.progress=FALSE);
 
 # Check your working directory and should find the new file: 5taxa-2ind-1K_SNPs.phy-allQuart.csv
 
@@ -74,7 +74,7 @@ setwd("/MYPATH/SNPs2CF/examples/");
 
 # Use n.quartets to subsample quartets. Here we will only sample 2 individual quartets per species quartet, by setting n.quartets = 2 
 output <- SNPs2CF(seqMatrix="5taxa-2ind-30K_SNPs.phy", ImapName="Imap.txt", between.sp.only = TRUE, max.SNPs = 100, bootstrap=FALSE, n.quartets = 2,
-                    outputName="SNPs2CF_5taxa-2ind-1K_SNPs-2quart.csv");
+                    outputName="SNPs2CF_5taxa-2ind-1K_SNPs-2quart.csv", save.progress=FALSE);
 
 # Check your working directory and should find the new file: SNPs2CF_5taxa-2ind-1K_SNPs-2quart.csv
 
@@ -86,9 +86,42 @@ setwd("/MYPATH/SNPs2CF/examples/");
 
 # Use cores to set the number of cores. Here we will run the calculations in 2 cores
   # WARNING: before running make sure you have 2 cores available. If there are not enough resources, your computer might crash.
-output <- SNPs2CF(seqMatrix="5taxa-30K_SNPs.phy", between.sp.only = TRUE, max.SNPs = 1000, bootstrap=FALSE, outputName="SNPs2CF_5taxa-1K_SNPs.csv", cores = 2);
+output <- SNPs2CF(seqMatrix="5taxa-30K_SNPs.phy", between.sp.only = TRUE, max.SNPs = 1000, bootstrap=FALSE, save.progress=FALSE,
+                  outputName="SNPs2CF_5taxa-1K_SNPs.csv", 
+                  cores = 2);
 
 # Check your working directory and should find the new file: SNPs2CF_5taxa-1K_SNPs.csv
+
+
+################################### Saving progress, continuing calculations and combining temporal CF tables ##########################################
+# Here, I described some useful utility to apply for cases of unfinished runs (function crashes, the computer goes off, etc).
+
+# set your working directory (replace MYPATH for your path to the SNPs2CF folder)
+setwd("/MYPATH/SNPs2CF/examples/");
+
+# If save.progress = T when running SNPs2CF (default), then a temporal folder is created and the calculation for each species quartet is saved separtely
+# Try the code below, to save the progress
+output <- SNPs2CF(seqMatrix="5taxa-2ind-30K_SNPs.phy", ImapName="Imap.txt", between.sp.only = TRUE, max.SNPs = 100, bootstrap=FALSE, n.quartets = 2,
+                  outputName="SNPs2CF_5taxa-2ind-1K_SNPs-2quart.csv", save.progress=TRUE);
+
+# There is a temporal folder that is created on the working directory. It contains a separated table for each species quartet that were created while 
+# the loop was making progress.
+
+# Lets suppose that the electricity went off in your computer and only the CF for the first 3 quartets were calculated. Then, it is possible to use 
+# the starting.sp.quartet element to let know the SNPs2CF function should start from the quartet number 4.
+output <- SNPs2CF(seqMatrix="5taxa-2ind-30K_SNPs.phy", ImapName="Imap.txt", between.sp.only = TRUE, max.SNPs = 100, bootstrap=FALSE, n.quartets = 2,
+                  outputName="SNPs2CF_5taxa-2ind-1K_SNPs-2quart.csv", save.progress=TRUE,
+                  starting.sp.quartet=4);
+
+# It is then possible to combine all the partial tables into one, using the function combind.CF.table() as follow:
+# if folder.names = NULL, then the function will append all the files within all folders matching the pattern "temp"
+# if you want to target a specific folder, use a character vector to name them using folder.names. E.g. folder.names=c("temp_11-25-03", "temp_11-11-03);
+
+combined.output <- combine.CF.table(folder.names=NULL, pattern=".temp.csv$", output="SNPs2CF.csv")
+
+# Then the partial runs were combined and saved in a single table on your working directory
+# check it out also:
+combined.output
 
 ################################### Loading the SNPs2CF output into PhyloNeworks #######################################################################
 # Once the CF table is obtained, it is possible to continue with the previously available PhyloNetworks pipeline.
