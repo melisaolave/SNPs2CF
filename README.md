@@ -15,13 +15,9 @@ This is an R function that performs the quartet-level concordance factor (CF) ca
 The output generated can later be loaded into the PhyloNetworks julia package (Solis-Lemus et al. 2017; Molecular biology and evolution, 34(12), 3292-3298) to estimate phylogenetic networks. 
 Information about PhyloNetworks can be found in its author’s website https://github.com/crsl4/PhyloNetworks.jl
 
-CITATION (Please check for citation updates)
+CITATION
 
-Our pipeline was presented at the II Joint Congress on Evolutionary Biology 2018 (Montpellier, France). Note that it is not yet published on a formal scientific journal but, because of the high demand received, we decided to make this function available before publication.
-
-Please cite:
-
-Olave M. & Meyer A. Tree thinking vs network thinking: a new approach to reconstruct phylogenetic networks from SNP datasets applied to study the rapidly speciating crater lake cichlids from Nicaragua. II Joint Congress on Evolutionary Biology 2018 (Montpellier, France). Symposium: New approaches to Phylogenomics.
+Olave M. & Meyer A (2020). Implementing Large Genomic SNP Datasets in Phylogenetic Network Reconstructions: A Case Study of Particularly Rapid Radiations of Cichlid Fish. Systematic Biology (in press).
 
 REQUIREMENTS
 1. R program: https://www.r-project.org
