@@ -33,4 +33,4 @@ version 1.3:
 
 version 1.2: 
 - the object save.progress was added to the SNPs2CF function, to allow saving progress
-- the new function combine.table was added to the functions.R
+- the new function combine.CF.table was added to the functions.R
