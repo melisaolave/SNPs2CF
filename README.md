@@ -20,6 +20,7 @@ REQUIREMENTS
 To report issues refer to: melisa.olave@uni-konstanz.de
 
 CHANGES:
+
 version 1.3:
 - a warning is saved in the log file if no informative SNPs are found to inform a species quartet when n.quartets = "all"
 - bug fix: bootstrap confidence interval returned an error if there were no SNPs informing CFs in one or more pseudoreplicates. Common error when there are only very few informative SNP in the matrix.
