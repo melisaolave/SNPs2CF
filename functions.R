@@ -1,4 +1,4 @@
-# Version 1.2
+# Version 1.3
 library(foreach);
 library(doMC);
 
@@ -251,12 +251,12 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
               boots.split14_23.vec[b] <- round(sum(boots.split14_23)/boots.genes, 4);
             }
             cat("done!\n");
-            max.boots.split12_34 <- c(max.boots.split12_34, quantile(boots.split12_34.vec, 0.95));
-            min.boots.split12_34 <- c(min.boots.split12_34, quantile(boots.split12_34.vec, 0.05));
-            max.boots.split13_24 <- c(max.boots.split13_24, quantile(boots.split13_24.vec, 0.95));
-            min.boots.split13_24 <- c(min.boots.split13_24, quantile(boots.split13_24.vec, 0.05));
-            max.boots.split14_23 <- c(max.boots.split14_23, quantile(boots.split14_23.vec, 0.95));
-            min.boots.split14_23 <- c(min.boots.split14_23, quantile(boots.split14_23.vec, 0.05));
+            max.boots.split12_34 <- c(max.boots.split12_34, quantile(boots.split12_34.vec, 0.95, na.rm=T));
+            min.boots.split12_34 <- c(min.boots.split12_34, quantile(boots.split12_34.vec, 0.05, na.rm=T));
+            max.boots.split13_24 <- c(max.boots.split13_24, quantile(boots.split13_24.vec, 0.95, na.rm=T));
+            min.boots.split13_24 <- c(min.boots.split13_24, quantile(boots.split13_24.vec, 0.05, na.rm=T));
+            max.boots.split14_23 <- c(max.boots.split14_23, quantile(boots.split14_23.vec, 0.95, na.rm=T));
+            min.boots.split14_23 <- c(min.boots.split14_23, quantile(boots.split14_23.vec, 0.05, na.rm=T));
           }
           ################### bootstrap #####
         }else{
@@ -270,7 +270,11 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
         cat("\tresampling =", n.resampled,"\n");
       }
       if(n.resampled == 100){ # in case the while loop gets stock for ever when randomly sampling
-        error <- paste("Warning: Species quartet:", paste(sampled.sp, collapse=" "), "\nwas sampled", ind.sampling, "times only, instead of n.quartets=", n.quartets, "\n");
+        if(n.quartets == "all"){
+          error <- paste("Warning: No informative SNPs found for the species quartet: ", paste(random.indQuartet, collapse=" "), ". This quartet was not saved in the output table\n", sep="");
+        }else{
+          error <- paste("Warning: Species quartet:", paste(sampled.sp, collapse=" "), "\nwas sampled", ind.sampling, "times only, instead of n.quartets=", n.quartets, "\n");
+        }
         prev.error <- scan(error.log, what="character", sep="\n");
         new.error <- c(prev.error, error);
         write(new.error, error.log);
@@ -280,45 +284,45 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
         break;
       }
     }
-      if(quartet.ok){
-        sp1 <- rep(as.character(subMatrix[1,1]), length(genes));
-        sp2 <- rep(as.character(subMatrix[2,1]), length(genes));
-        sp3 <- rep(as.character(subMatrix[3,1]), length(genes));
-        sp4 <- rep(as.character(subMatrix[4,1]), length(genes));
-        colnames(temp.table) <- c("t1", "t2", "t3", "t4", "CF12_34", "CF13_24", "CF14_23", "genes");
-        genes <- c(as.numeric(temp.table[,8]));
-        split12_34 <- round(c(as.numeric(temp.table[,5]))/genes, 4);
-        split13_24 <- round(c(as.numeric(temp.table[,6]))/genes, 4);
-        split14_23 <- round(c(as.numeric(temp.table[,7]))/genes, 4);
-        if(bootstrap){
-          output.table <- data.frame(sp1, sp2, sp3, sp4, 
-                                     split12_34, min.boots.split12_34, max.boots.split12_34,
-                                     split13_24, min.boots.split13_24, max.boots.split13_24,
-                                     split14_23, min.boots.split14_23, max.boots.split14_23,
-                                     genes);
-        }else{
-          output.table <- data.frame(sp1, sp2, sp3, sp4, split12_34, split13_24, split14_23, genes);
-        }
-        # add colnames
-        if(bootstrap){
-          colnames(output.table) <- c("t1", "t2", "t3", "t4", 
-                                      "CF12_34", "CF12_34_lo", "CF12_34_hi",
-                                      "CF13_24", "CF13_24_lo", "CF13_24_hi",
-                                      "CF14_23", "CF14_23_lo", "CF14_23_hi",
-                                      "genes");
-        }else{
-          colnames(output.table) <- c("t1", "t2", "t3", "t4", "CF12_34", "CF13_24", "CF14_23", "genes");
-        }
-        
-        # save progress
-        if(save.progress){
-          setwd(temp.path);
-          write.table(output.table, paste("quartet", l, ".temp.csv", sep=""), col.names=T, row.names=F, sep=",", quote=F)
-          setwd(wd);
-        }
-        
-        # return
-        output.table;
+    if(quartet.ok){
+      sp1 <- rep(as.character(subMatrix[1,1]), length(genes));
+      sp2 <- rep(as.character(subMatrix[2,1]), length(genes));
+      sp3 <- rep(as.character(subMatrix[3,1]), length(genes));
+      sp4 <- rep(as.character(subMatrix[4,1]), length(genes));
+      colnames(temp.table) <- c("t1", "t2", "t3", "t4", "CF12_34", "CF13_24", "CF14_23", "genes");
+      genes <- c(as.numeric(temp.table[,8]));
+      split12_34 <- round(c(as.numeric(temp.table[,5]))/genes, 4);
+      split13_24 <- round(c(as.numeric(temp.table[,6]))/genes, 4);
+      split14_23 <- round(c(as.numeric(temp.table[,7]))/genes, 4);
+      if(bootstrap){
+        output.table <- data.frame(sp1, sp2, sp3, sp4, 
+                                   split12_34, min.boots.split12_34, max.boots.split12_34,
+                                   split13_24, min.boots.split13_24, max.boots.split13_24,
+                                   split14_23, min.boots.split14_23, max.boots.split14_23,
+                                   genes);
+      }else{
+        output.table <- data.frame(sp1, sp2, sp3, sp4, split12_34, split13_24, split14_23, genes);
+      }
+      # add colnames
+      if(bootstrap){
+        colnames(output.table) <- c("t1", "t2", "t3", "t4", 
+                                    "CF12_34", "CF12_34_lo", "CF12_34_hi",
+                                    "CF13_24", "CF13_24_lo", "CF13_24_hi",
+                                    "CF14_23", "CF14_23_lo", "CF14_23_hi",
+                                    "genes");
+      }else{
+        colnames(output.table) <- c("t1", "t2", "t3", "t4", "CF12_34", "CF13_24", "CF14_23", "genes");
+      }
+      
+      # save progress
+      if(save.progress){
+        setwd(temp.path);
+        write.table(output.table, paste("quartet", l, ".temp.csv", sep=""), col.names=T, row.names=F, sep=",", quote=F)
+        setwd(wd);
+      }
+      
+      # return
+      output.table;
     }
   }
   write.table(output.table, outputName, sep=",", col.names=T, row.names=F, quote=F);
