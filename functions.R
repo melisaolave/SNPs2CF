@@ -387,7 +387,7 @@ combine.CF.table <- function(wd=getwd(), folder.names=NULL, pattern=".temp.csv$"
   return(table);
 }
 
-# vcf to phylip & separate phases
+# phased vcf to phylip & separate phases
 phased.vcf2phylip <- function(wd=getwd(), vcf.name, total.SNPs, output.name=NULL){
   if(is.null(output.name)){
     output.name <- paste(vcf.name, ".phy", sep="")
