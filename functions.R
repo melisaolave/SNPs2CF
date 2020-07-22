@@ -1,6 +1,7 @@
-# Version 1.3
+# Version 1.4
 library(foreach);
 library(doMC);
+library(pegas);
 
 SNPs2CF <- function(wd=getwd(), seqMatrix, 
                     ImapName=NULL, rm.outgroup=F, outgroupSp="outgroup",
@@ -384,4 +385,32 @@ combine.CF.table <- function(wd=getwd(), folder.names=NULL, pattern=".temp.csv$"
   write.table(table, output, col.names=T, row.names=F, sep=",", quote=F);
   setwd(wd);
   return(table);
+}
+
+# vcf to phylip & separate phases
+phased.vcf2phylip <- function(wd=getwd(), vcf.name, total.SNPs, output.name=NULL){
+  if(is.null(output.name)){
+    output.name <- paste(vcf.name, ".phy", sep="")
+  }
+  # read vcf
+  setwd(wd)
+  vcf <- read.vcf(vcf.name, to=total.SNPs)
+  ind <- rownames(vcf)
+  SNPs <- total.SNPs
+  matrix <- NULL;
+  for(i in 1:length(ind)){
+    ind.vcf <- as.data.frame(vcf[i,])
+    hap0 <- paste(ind[i], "_0 ", sep="");
+    hap1 <- paste(ind[i], "_1 ", sep="");
+    for(j in 1:SNPs){
+      snp <- as.character(ind.vcf[,j])
+      snp <- unlist(strsplit(snp, split=""))[c(1,3)]
+      hap0 <- paste(hap0,snp[1], sep="")
+      hap1 <- paste(hap1,snp[2], sep="")
+    }
+    matrix <- c(matrix, hap0, hap1);
+  }
+  matrix <- c(paste(length(matrix), SNPs), matrix)
+  write(matrix, output.name)
+  cat("done!\n")
 }
