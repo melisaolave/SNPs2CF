@@ -20,6 +20,7 @@ REQUIREMENTS
 To report issues refer to: melisa.olave@uni-konstanz.de
 
 CHANGES:
+
 version 1.41:
 - A note about reading CF with multiple alleles was added to the documentation and tutorial
 
