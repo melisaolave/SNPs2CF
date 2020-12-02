@@ -6,7 +6,7 @@
 ############################################################# DESCRIPTION #########################################################################
 # This tutorial allows to obtain the concordance factors (CF) calculations from a SNP matrix in phylip format using the SNPs2CF() function.
 # Make sure of reading the documentation before.
-# Version 1.2
+# Version 1.41
 #################################### Getting started: Packages installation and loading the functions #############################################
 # Make sure to install the doMC and foreach libraries. If they are not yet installed, run:
 install.packages("foreach", repos="http://R-Forge.R-project.org");
@@ -129,6 +129,13 @@ combined.output
 # The output table is in the same format than the one required by PhyloNetworks, and can be loaded into julia (see https://julialang.org):
 # julia> using PhyloNetworks
 # julia> CF = readTableCF("SNPs2CF.csv")
+
+# if you are using between.sp.only = FALSE, then the CF table has more than one species per line and in such case PhyloNetworks requires one additional step to read the table. Just do:
+
+#julia> using PhyloNetworks
+#julia> CFtable = CSV.read("SNPs2CF.csv", copycols=true)
+#julia> CF = readTableCF!(CFtable)
+
 
 # For further steps and phylogenetic network reconstruction, continue with the tutorials
 # on the website http://crsl4.github.io/PhyloNetworks.jl/latest/man/snaq_plot/#Network-Estimation-1
