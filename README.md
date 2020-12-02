@@ -20,6 +20,8 @@ REQUIREMENTS
 To report issues refer to: melisa.olave@uni-konstanz.de
 
 CHANGES:
+version 1.41:
+- A note about reading CF with multiple alleles was added to the documentation and tutorial
 
 version 1.4:
 - the phased.vcf2phylip function was added to functions.R, as well as the tutorial vcf2phylip_tutorial.R
