@@ -17,7 +17,7 @@ REQUIREMENTS
 1. R program: https://www.r-project.org
 2. R packages: foreach and doMC.
 
-To report issues refer to: melisa.olave@uni-konstanz.de
+To report issues refer to: molave@mendoza-conicet.gov.ar
 
 CHANGES:
 
