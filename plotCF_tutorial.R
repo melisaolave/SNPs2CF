@@ -20,9 +20,11 @@
 
 
 ##### tutorial starts here #####
-
 # set working directory
-setwd("my/path/goes/here")
+setwd("/my/path/goes/here")
+
+#load functions
+source("/my/path/to/functions/function_v1.6.R")
 
 #run plotCF for all quartet
 plotCF(wd=getwd(), CF.table.name="SNPs2CF.csv", col="gray", 
