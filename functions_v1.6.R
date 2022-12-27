@@ -461,9 +461,13 @@ plotCF <- function(wd=getwd(), CF.table.name, target.quartet=NULL, col="gray",
     quartet <- unlist(strsplit(all[i], " "))
     subtable <- new.CF.table[new.CF.table$t1 == quartet[1] & new.CF.table$t2 == quartet[2] &
                                new.CF.table$t3 == quartet[3] & new.CF.table$t4 == quartet[4],];
-    CF.mean <- c(mean(subtable$CF12_34), mean(subtable$CF13_24), mean(subtable$CF14_23))
-    CF.sd <- c(sd(subtable$CF12_34), sd(subtable$CF13_24), sd(subtable$CF14_23))
-    
+    if(nrow(subtable) > 1){
+   	  CF.mean <- c(mean(subtable$CF12_34), mean(subtable$CF13_24), mean(subtable$CF14_23))
+      CF.sd <- c(sd(subtable$CF12_34), sd(subtable$CF13_24), sd(subtable$CF14_23))
+    }else{
+      CF.mean <- c(subtable$CF12_34, subtable$CF13_24, subtable$CF14_23)
+      CF.sd <- c(0,0,0)
+    }    
     labels <- c(paste("(", quartet[1], ",",quartet[2], ")\n(", quartet[3], ",",quartet[4], ")", sep=""), #CF12_34
                 paste("(", quartet[1], ",",quartet[3], ")\n(", quartet[2], ",",quartet[4], ")", sep=""), #CF13_24
                 paste("(", quartet[1], ",",quartet[4], ")\n(", quartet[2], ",",quartet[3], ")", sep="") #CF14_23
@@ -549,3 +553,5 @@ plotCF <- function(wd=getwd(), CF.table.name, target.quartet=NULL, col="gray",
   
   mtext(side = 2, "Concordance factor", outer=T, cex=0.75, line=0.5)
 }
+
+
