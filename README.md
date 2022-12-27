@@ -23,9 +23,8 @@ To report issues refer to: molave@mendoza-conicet.gob.ar
 
 CHANGES:
 version 1.6:
-
--plotCF function was added to functions_v1.6.R
--plotCF_tutorial.R was included
+- plotCF function was added to functions_v1.6.R
+- plotCF_tutorial.R was included
 
 version 1.5:
 - phased.vcf2phylip function replaced by vcf2phylip. New function (1) can randomly assign heterozygote bases to an allele, (2) runs in parallel and (3) can replace missing data coded as "." by question marks "?"
