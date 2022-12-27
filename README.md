@@ -23,6 +23,7 @@ To report issues refer to: molave@mendoza-conicet.gob.ar
 
 CHANGES:
 version 1.6:
+
 -plotCF function was added to functions_v1.6.R
 -plotCF_tutorial.R was included
 
