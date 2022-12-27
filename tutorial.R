@@ -7,7 +7,7 @@
 # This tutorial allows to obtain the concordance factors (CF) calculations from a SNP matrix in phylip format using the SNPs2CF() function.
 # Make sure of reading the documentation before.
 # When using your own dataset, you can convert your vcf into phylip format using the vcf2phylip (included). See vcf2phylip tutorial form more information
-# Version 1.5
+# Version 1.6
 #################################### Getting started: Packages installation and loading the functions #############################################
 # Make sure to install the doMC and foreach libraries. If they are not yet installed, run:
 install.packages("foreach", repos="http://R-Forge.R-project.org");
@@ -16,7 +16,7 @@ install.packages("doMC", repos="http://R-Forge.R-project.org");
 # Then, copy the folder in www.github.com/melisaolave/SNPs2CF to your working directory
 # load the functions using source(). This will load the SNPs2CF(), as well as other required internal functions.
   # replace MYPATH for your path to the SNPs2CF folder
-source("MYPATH/SNPs2CF/functions_v1.5.R");
+source("MYPATH/SNPs2CF/functions_v1.6.R");
 
 #################################### Using SNF2CF() - 1 individual per species ###################################################################
 # set your working directory (replace MYPATH for your path to the SNPs2CF folder)
