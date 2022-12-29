@@ -428,7 +428,7 @@ vcf2phylip <- function(wd=getwd(), vcf.name, total.SNPs, random.phase = F, repla
 }
 
 plotCF <- function(wd=getwd(), CF.table.name, target.quartet=NULL, col="gray", 
-                   plot.stats=TRUE, asterisk.cex=0.85, p.lines.cex=1, y.line.adj=0.02){
+                   plot.stats=TRUE, asterisk.cex=0.85, p.lines.cex=1, y.line.adj=0.02, xlabel.cex=0.65){
   CF.table <- read.table(CF.table.name, sep=",", header=T)
   ylim=c(0,1)
   if(is.null(target.quartet) == FALSE){
@@ -479,7 +479,7 @@ plotCF <- function(wd=getwd(), CF.table.name, target.quartet=NULL, col="gray",
       arrows(x0=j-0.5, y0=CF.mean[j]-CF.sd[j], y1=CF.mean[j]+CF.sd[j], length=0.01, angle=90, code=3)
     }
     axis(1, labels=F, tck=0)
-    axis(1, at=c(0.5,1.5,2.5), labels=labels, las=2, cex.axis=0.65)
+    axis(1, at=c(0.5,1.5,2.5), labels=labels, las=2, cex.axis=xlabel.cex)
     axis(2, cex.axis=1)#c(0.25,0.35,0.45))
     #stat comparision
     if(plot.stats){
@@ -553,5 +553,7 @@ plotCF <- function(wd=getwd(), CF.table.name, target.quartet=NULL, col="gray",
   
   mtext(side = 2, "Concordance factor", outer=T, cex=0.75, line=0.5)
 }
+
+
 
 
