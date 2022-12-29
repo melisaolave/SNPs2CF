@@ -18,6 +18,8 @@
 
 #y.line.adj = change to adjust vertical position of stat line comparisons, default 0.02
 
+#xlabel.cex = change to adjust font size of x labels, default = 0.65 
+
 
 ##### tutorial starts here #####
 # set working directory
@@ -28,7 +30,7 @@ source("/my/path/to/functions/function_v1.6.R")
 
 #run plotCF for all quartet
 plotCF(wd=getwd(), CF.table.name="SNPs2CF.csv", col="gray", 
-      plot.stats=TRUE, asterisk.cex=0.85, p.lines.cex=1, y.line.adj=0.02)
+      plot.stats=TRUE, asterisk.cex=0.85, p.lines.cex=1, y.line.adj=0.02, xlabel.cex=0.65)
       
 #if want to plot many bar charts in a single plot, for example 2x5 plot, you can use:
 rows <- 2 # number of rows for plotting
@@ -43,7 +45,7 @@ par(mar = c(4, 2, 2, 2)); #inner margins
 
 plotCF(wd=getwd(), CF.table.name="SNPs2CF.csv", 
        col="gray", 
-      plot.stats=TRUE, asterisk.cex=0.85, p.lines.cex=1, y.line.adj=0.02)
+      plot.stats=TRUE, asterisk.cex=0.85, p.lines.cex=1, y.line.adj=0.02, xlabel.cex=0.65)
 
 # save plot using
 dev.copy(pdf, "CFplot.pdf", width=8, height=6);
