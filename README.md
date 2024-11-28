@@ -2,7 +2,7 @@ SNPs2CF: An R function to compute Concordance Factors from SNP datasets
 
 https://github.com/melisaolave/SNPs2CF
 
-by Melisa Olave, University of Konstanz (Germany). Follow updates in twitter: @Melisa_Olave and Mastodon: @melisaolave@ecoevo.social
+by Melisa Olave, University of Konstanz (Germany). Follow updates in twitter: @Melisa_Olave and Bluesky: @melisaolave
 
 LICENSE
 This software is provided "as is" without warranty of any kind. In no event shall the author be held responsible for any damage resulting from the use of this software. The program package, including the R functions, documentation, tutorials and examples, is distributed free of charge.
