@@ -1,4 +1,4 @@
-# Version 1.6
+# Version 1.7
 library(foreach);
 library(doMC);
 library(pegas);
@@ -6,6 +6,7 @@ library(pegas);
 SNPs2CF <- function(wd=getwd(), seqMatrix, 
                     ImapName=NULL, rm.outgroup=F, outgroupSp="outgroup",
                     indels.as.fifth.state=F,  
+                    multipleSNPs.per.locus = F, kept.sites.file = paste(seqMatrix, ".kept.sites", sep=""), window=10000,
                     bootstrap=T, boots.rep=100, 
                     outputName="SNPs2CF.csv",
                     n.quartets="all", between.sp.only=F, starting.sp.quartet=1, max.SNPs=NULL, max.quartets=100000,
@@ -109,7 +110,7 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
     cat("WARNING: by setting max.SNPs the maximum number of SNPs per quartet will be restricted to: max.SNPs = ", max.SNPs, "\n");
   }
   if(bootstrap){
-    cat("bootstrap was set as TRUE, then a total of ", boots.rep, "bootstrap pseudo-replicates will be computed\n")
+    cat("bootstrap was set as TRUE, then a total of ", boots.rep, "pseudo-replicates will be computed\n")
   }
   if(cores > 1){
     if(n.quartets == "all"){
@@ -131,6 +132,38 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
     dir.name <- gsub(pattern=":", replacement="-",dir.name);
     dir.create(dir.name)
     temp.path <- file.path(wd, dir.name);
+  }
+  
+  if(multipleSNPs.per.locus){ # read kept sites
+    cat("Multiple SNPs in a given window will be considered. Reading kept.sites file. Please note that the kept site list MUST MUST contain all SNPs in the phylip matrix\n")
+    cat("Window size=", window, "bp\n");
+    kept.sites.table <- read.table(kept.sites.file, sep="\t", header=T)
+    if(colnames(kept.sites.table)[1] != "CHROM" | colnames(kept.sites.table)[2] != "POS"){
+      stop("Please check kept.sites file provided. A two columns table is expected with names CHROM and POS (in vcftool format kept.sites)\n")
+    }
+    all.loci <- unique(kept.sites.table$CHROM)
+    SNPs.per.locus <- NULL
+    for(iii in all.loci){ # count how many SNPs per locus
+      if(window != "all"){
+        bin.start <- 1
+        bin.end <- bin.start+window
+        chr.table <- kept.sites.table[kept.sites.table$CHROM == iii,]
+        stop.bin <- max(chr.table$POS)
+        while(bin.start <= stop.bin){
+          n.SNPs <-nrow(chr.table[chr.table$POS >= bin.start & chr.table$POS <= bin.end,]) # get number of SNPs per window
+          if(n.SNPs > 0){
+            SNPs.per.locus <- c(SNPs.per.locus,n.SNPs)
+          }
+          bin.start <- bin.start+window
+          bin.end <- bin.start+window
+          if(bin.end > stop.bin){
+            bin.end <- stop.bin
+          }
+        }
+      }else{
+        SNPs.per.locus <- c(SNPs.per.locus, sum(kept.sites.table$CHROM == iii))
+      }
+    }
   }
   
   # starting loop
@@ -209,17 +242,53 @@ SNPs2CF <- function(wd=getwd(), seqMatrix,
         split12_34 <- NULL;
         split13_24 <- NULL;
         split14_23 <- NULL;
-        for(j in 2:ncol(subMatrix)){
-          bp <- subMatrix[,c(1,j)];
-          alleles <- unique(bp[,2]);
-          if(length(setdiff(alleles, c("A", "C", "T", "G", "a", "c", "t", "g", as.character(0:10), gaps))) == 0  # ignoring sites with ambiguities, missing data and gaps
-             & length(alleles) == 2){ # if there are only bases and only biallelics
-            split12_34 <- c(split12_34, bp[1,2] == bp[2,2] & bp[3,2] == bp[4,2]);
-            split13_24 <- c(split13_24, bp[1,2] == bp[3,2] & bp[2,2] == bp[4,2]);
-            split14_23 <- c(split14_23, bp[1,2] == bp[4,2] & bp[2,2] == bp[3,2]);
+        
+        #########
+        if(multipleSNPs.per.locus){ # if there are multiple SNPs per locus, then use use kept.sites file to sample 1 informative SNP per locus
+          col.number <- 1
+          for(jj in 1:length(SNPs.per.locus)){
+            for(jjj in 1:(SNPs.per.locus[jj]-1)){
+              #cat("locus", jj, "SNP", jjj, "\n")
+              j <- jjj + col.number
+              
+              bp <- subMatrix[,c(1,j)];
+              alleles <- unique(bp[,2]);
+              if(length(setdiff(alleles, c("A", "C", "T", "G", "a", "c", "t", "g", as.character(0:10), gaps))) == 0  # ignoring sites with ambiguities, missing data and gaps
+                 & length(alleles) == 2){ # if there are only bases and only biallelics
+                split12_34 <- c(split12_34, bp[1,2] == bp[2,2] & bp[3,2] == bp[4,2]);
+                split13_24 <- c(split13_24, bp[1,2] == bp[3,2] & bp[2,2] == bp[4,2]);
+                split14_23 <- c(split14_23, bp[1,2] == bp[4,2] & bp[2,2] == bp[3,2]);
+                if((bp[1,2] == bp[2,2] & bp[3,2] == bp[4,2]) |
+                   (bp[1,2] == bp[3,2] & bp[2,2] == bp[4,2]) |
+                   (bp[1,2] == bp[4,2] & bp[2,2] == bp[3,2])){ # if already found informative SNP, break and continue with next locus jj
+                  #cat("\tSNP informative found", jj, "locus and SNP", jjj, ":", bp, "\n" )
+                  break;
+                }else{
+                  #cat("Not informative SNP found:", bp, "\n")
+                }
+              }
+            }
             if(is.null(max.SNPs) == F){
               if(sum(split12_34, split13_24, split14_23) == max.SNPs){
                 break;
+              }
+            }
+            col.number <- col.number + SNPs.per.locus[jj]
+          }
+        ##########  
+        }else{ # only one SNP per locus already filtered
+          for(j in 2:ncol(subMatrix)){
+            bp <- subMatrix[,c(1,j)];
+            alleles <- unique(bp[,2]);
+            if(length(setdiff(alleles, c("A", "C", "T", "G", "a", "c", "t", "g", as.character(0:10), gaps))) == 0  # ignoring sites with ambiguities, missing data and gaps
+               & length(alleles) == 2){ # if there are only bases and only biallelics
+              split12_34 <- c(split12_34, bp[1,2] == bp[2,2] & bp[3,2] == bp[4,2]);
+              split13_24 <- c(split13_24, bp[1,2] == bp[3,2] & bp[2,2] == bp[4,2]);
+              split14_23 <- c(split14_23, bp[1,2] == bp[4,2] & bp[2,2] == bp[3,2]);
+              if(is.null(max.SNPs) == F){
+                if(sum(split12_34, split13_24, split14_23) == max.SNPs){
+                  break;
+                }
               }
             }
           }
