@@ -16,7 +16,7 @@ install.packages("doMC", repos="http://R-Forge.R-project.org");
 # Then, copy the folder in www.github.com/melisaolave/SNPs2CF to your working directory
 # load the functions using source(). This will load the SNPs2CF(), as well as other required internal functions.
   # replace MYPATH for your path to the SNPs2CF folder
-source("MYPATH/SNPs2CF/functions_v1.6.R");
+source("MYPATH/SNPs2CF/functions_v1.7.R");
 
 #################################### Using SNF2CF() - 1 individual per species ###################################################################
 # set your working directory (replace MYPATH for your path to the SNPs2CF folder)
@@ -124,19 +124,34 @@ combined.output <- combine.CF.table(folder.names=NULL, pattern=".temp.csv$", out
 # check it out also:
 combined.output
 
+################################### Using multiple SNPs within a given window ##########################################################################
+# Since version 1.7, the possibility of considering multiple SNPs for CF calculations per quartet has been implemented.
+# The algorithm will still take only one SNP per species quartet per specified window, but by considering multiple SNPs within a window 
+# (or RAD locus, UCE, etc.), the probability of finding an informative SNP per species quartet increases significantly. 
+# Thus, this is now the recommended way to run SNPs2CF.
+
+# This example is based on a RADseq dataset where a window of 150 bp is used to sample SNPs. 
+# Please note that if you are working with longer loci or whole-genome sequences, the window size should be increased 
+# to ensure sampling of unlinked SNPs (e.g., 10,000 or 50,000 bp).
+
+SNPs2CF(seqMatrix="homonota.allSNPs.phy", 
+        ImapName="homonota_Imap.txt",
+        multipleSNPs.per.locus = T, kept.sites.file = "homonota.allSNPs.kept.sites", window=150,
+        n.quartets=1, between.sp.only = T, save.progress = F,
+        cores=1)
+
 ################################### Loading the SNPs2CF output into PhyloNeworks #######################################################################
 # Once the CF table is obtained, it is possible to continue with the previously available PhyloNetworks pipeline.
 
 # The output table is in the same format than the one required by PhyloNetworks, and can be loaded into julia (see https://julialang.org):
-# julia> using PhyloNetworks
+# julia> using PhyloNetworks, SNaQ
 # julia> CF = readTableCF("SNPs2CF.csv")
 
 # if you are using between.sp.only = FALSE, then the CF table has more than one species per line and in such case PhyloNetworks requires one additional step to read the table. Just do:
 
 #julia> using PhyloNetworks
-#julia> CFtable = CSV.read("SNPs2CF.csv", copycols=true)
-#julia> CF = readTableCF!(CFtable)
+#julia> CF = readtableCF("SNPs2CF.csv")
 
 
 # For further steps and phylogenetic network reconstruction, continue with the tutorials
-# on the website http://crsl4.github.io/PhyloNetworks.jl/latest/man/snaq_plot/#Network-Estimation-1
+# on the website https://juliaphylo.github.io/SNaQ.jl/dev/man/snaq_est/#Estimating-a-network
