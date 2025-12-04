@@ -1,0 +1,13 @@
+CHROM	POS
+contig_1	3
+contig_1	7
+contig_1	25
+contig_2	3
+contig_2	17
+contig_3	45
+contig_3	55
+contig_4	45
+contig_4	55
+contig_5	3
+contig_5	7
+contig_5	25
