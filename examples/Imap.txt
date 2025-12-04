@@ -1,0 +1,11 @@
+traits	species
+sp1.A	sp1
+sp1.B	sp1
+sp2.A	sp2
+sp2.B	sp2
+sp3.A	sp3
+sp3.B	sp3
+sp4.A	sp4
+sp4.B	sp4
+sp5.A	sp5
+sp5.B	sp5
